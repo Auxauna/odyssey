@@ -1,5 +1,5 @@
 import { streamObject } from "ai";
-import { google } from "@ai-sdk/google";
+import { gateway } from "@ai-sdk/gateway";
 import { heroJourneySchema } from "@/lib/schema";
 import { HERO_JOURNEY_SYSTEM_PROMPT } from "@/lib/prompt";
 import { scrapeUrl } from "@/lib/scraper";
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
 
     // Stream structured Hero's Journey
     const result = streamObject({
-      model: google("gemini-2.5-flash-preview-05-20"),
+      model: gateway("google/gemini-2.5-flash-preview-05-20"),
       schema: heroJourneySchema,
       system: HERO_JOURNEY_SYSTEM_PROMPT,
       prompt: `Here is the case study content to transform into a Hero's Journey narrative:\n\n---\n\nSource URL: ${url}\n\n${content}\n\n---\n\nTransform this into a compelling 12-stage Hero's Journey. The customer company is the hero, Resend is the mentor. Use specific details from the content above.`,

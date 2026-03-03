@@ -1,6 +1,6 @@
 "use client";
 
-import { experimental_useObject as useObject } from "ai/react";
+import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { useState } from "react";
 import { heroJourneySchema } from "@/lib/schema";
 import { Header } from "@/components/header";
