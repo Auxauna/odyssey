@@ -2,19 +2,28 @@
 
 import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { useState } from "react";
-import { heroJourneySchema } from "@/lib/schema";
+import { heroJourneySchema, type HeroJourney } from "@/lib/schema";
 import { Header } from "@/components/header";
 import { UrlInput } from "@/components/url-input";
 import { JourneyView } from "@/components/journey-view";
-import { LoadingSkeleton } from "@/components/loading-skeleton";
+import { ProgressBar } from "@/components/loading-skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
   const [error, setError] = useState<string | null>(null);
+  const [completedJourney, setCompletedJourney] = useState<Partial<HeroJourney> | null>(null);
+  const [showScroll, setShowScroll] = useState(false);
 
-  const { object, submit, isLoading, stop } = useObject({
+  const { object, submit, isLoading } = useObject({
     api: "/api/generate",
     schema: heroJourneySchema,
+    onFinish: ({ object }) => {
+      if (object) {
+        setCompletedJourney(object as Partial<HeroJourney>);
+        // Brief pause then reveal
+        setTimeout(() => setShowScroll(true), 600);
+      }
+    },
     onError: (err) => {
       setError(err.message || "Something went wrong. Please try again.");
     },
@@ -22,17 +31,26 @@ export default function Home() {
 
   const handleSubmit = (url: string) => {
     setError(null);
+    setCompletedJourney(null);
+    setShowScroll(false);
     submit({ url });
   };
 
-  const hasJourney = object && (object.company || (object.stages && object.stages.length > 0));
+  const stageCount = object?.stages?.length ?? 0;
+  const isComplete = !!completedJourney;
 
   return (
     <main className="min-h-screen px-4 pb-20">
       <div className="max-w-4xl mx-auto">
         <Header />
 
-        <UrlInput onSubmit={handleSubmit} isLoading={isLoading} />
+        <AnimatePresence>
+          {!showScroll && (
+            <motion.div exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}>
+              <UrlInput onSubmit={handleSubmit} isLoading={isLoading} />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <AnimatePresence>
           {error && (
@@ -40,7 +58,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="mt-6 p-4 rounded-2xl glass-card border-red-500/20 text-center"
+              className="mt-6 p-4 rounded-2xl glass-card border-red-500/20 text-center max-w-2xl mx-auto"
             >
               <p className="text-sm text-red-400">{error}</p>
               <button
@@ -53,28 +71,39 @@ export default function Home() {
           )}
         </AnimatePresence>
 
-        {isLoading && !hasJourney && <LoadingSkeleton />}
+        {/* Progress bar while generating */}
+        <AnimatePresence>
+          {isLoading && !showScroll && (
+            <ProgressBar stageCount={stageCount} isComplete={isComplete} />
+          )}
+        </AnimatePresence>
 
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        {hasJourney && (
-          <JourneyView journey={object as any} isStreaming={isLoading} />
-        )}
+        {/* The scroll reveal */}
+        <AnimatePresence>
+          {showScroll && completedJourney && (
+            <>
+              <JourneyView journey={completedJourney} />
 
-        {/* Stop button during generation */}
-        {isLoading && hasJourney && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex justify-center mt-8"
-          >
-            <button
-              onClick={stop}
-              className="px-4 py-2 rounded-full glass-card text-xs font-medium text-resend-gray-100 hover:text-resend-white hover:border-white/20 transition-all"
-            >
-              Stop generating
-            </button>
-          </motion.div>
-        )}
+              {/* Generate another */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1 }}
+                className="flex justify-center mt-2"
+              >
+                <button
+                  onClick={() => {
+                    setShowScroll(false);
+                    setCompletedJourney(null);
+                  }}
+                  className="text-xs text-resend-gray-200 hover:text-resend-white transition-colors"
+                >
+                  Generate another journey
+                </button>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
 
         {/* Footer */}
         <footer className="mt-20 text-center text-xs text-resend-gray-300">
