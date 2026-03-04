@@ -9,16 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@ai-sdk/gateway": "^3.0.63",
-    "@ai-sdk/google": "^1.2.18",
-    "@ai-sdk/react": "^3.0.113",
-    "ai": "^6.0.111",
-    "cheerio": "^1.0.0",
     "framer-motion": "^12.6.3",
     "next": "^15.3.3",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "zod": "^3.24.3"
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.7",
