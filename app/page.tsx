@@ -88,7 +88,7 @@ export default function Home() {
             >
               Jacob Rucker
             </a>
-            {" "}— Powered by Gemini + Vercel AI SDK
+            {" "}— Powered by Claude + Vercel AI SDK
           </p>
         </footer>
       </div>
